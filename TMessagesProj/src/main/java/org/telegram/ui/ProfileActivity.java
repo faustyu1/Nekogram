@@ -5557,7 +5557,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             view.setTextSize(14);
             view.setGravity(Gravity.LEFT);
             view.setPadding(AndroidUtilities.dp(4), AndroidUtilities.dp(2), AndroidUtilities.dp(4), AndroidUtilities.dp(2));
-            view.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             return view;
         });
         idTextView.setAlpha(1.0f);
@@ -5565,6 +5564,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         idTextView.setInAnimation(context, R.anim.alpha_in);
         idTextView.setOutAnimation(context, R.anim.alpha_out);
         idTextView.setLongClickable(true);
+        idTextView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         avatarContainer2.addView(idTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 118 - 4, -2, 4, 0));
 
         ratingView = new StarRatingView(context);
