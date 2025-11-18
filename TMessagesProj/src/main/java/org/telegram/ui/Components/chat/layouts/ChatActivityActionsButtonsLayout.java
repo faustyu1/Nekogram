@@ -39,6 +39,7 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
     private final Theme.ResourcesProvider resourcesProvider;
 
     private final ButtonHolder replyButton = new ButtonHolder();
+    private final ButtonHolder selectButton = new ButtonHolder();
     private final ButtonHolder forwardButton = new ButtonHolder();
 
     public ChatActivityActionsButtonsLayout(@NonNull Context context,
@@ -53,6 +54,11 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
         replyButton.button.setOnClickListener(v -> {});
         ScaleStateListAnimator.apply(replyButton.button, .065f, 2f);
 
+        selectButton.button = ChatActivityBlurredRoundButton.create(context, blurredBackgroundDrawableViewFactory,
+                colorProvider, resourcesProvider, R.drawable.ic_select_between);
+        selectButton.button.setContentDescription(LocaleController.getString(R.string.SelectBetween));
+        ScaleStateListAnimator.apply(selectButton.button, .065f, 2f);
+
         forwardButton.button = ChatActivityBlurredRoundButton.create(context, blurredBackgroundDrawableViewFactory,
             colorProvider, resourcesProvider, 0);
         ScaleStateListAnimator.apply(forwardButton.button, .065f, 2f);
@@ -64,11 +70,16 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
         setClipChildren(false);
 
         addView(replyButton.button, LayoutHelper.createLinear(0, 56, 1f, 1, 0, -1, 0));
+        addView(selectButton.button, LayoutHelper.createLinear(56, 56, -1, 0, -1, 0));
         addView(forwardButton.optionsView, LayoutHelper.createLinear(0, 56, 1f, -1, 0, 1, 0));
     }
 
     public void setReplyButtonOnClickListener(View.OnClickListener listener) {
         replyButton.button.setOnClickListener(listener);
+    }
+
+    public void setSelectButtonOnClickListener(View.OnClickListener listener) {
+        selectButton.button.setOnClickListener(listener);
     }
 
     public void setForwardButtonOnClickListener(View.OnClickListener listener) {
@@ -84,7 +95,7 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
         forwardButton.setText(text);
         forwardButton.setGravity(Gravity.CENTER_VERTICAL);
         forwardButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-        forwardButton.setPadding(AndroidUtilities.dp(21), 0, AndroidUtilities.dp(21), 0);
+        forwardButton.setPadding(AndroidUtilities.dp(7), 0, AndroidUtilities.dp(7), 0);
         forwardButton.setCompoundDrawablePadding(AndroidUtilities.dp(6));
         forwardButton.setTextColor(Theme.getColor(Theme.key_glass_defaultText, resourcesProvider));
         forwardButton.setTypeface(AndroidUtilities.bold());
@@ -113,6 +124,10 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
     public void setReplyButtonEnabled(boolean enabled, boolean animated) {
         replyButton.enabledAnimator.setValue(enabled, animated);
         replyButton.button.setEnabled(enabled);
+    }
+
+    public void showSelectButton(boolean visible, boolean animated) {
+        selectButton.visibilityAnimator.setValue(visible, animated);
     }
 
     public void showForwardButton(boolean visible, boolean animated) {
@@ -150,6 +165,7 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
 
     public void updateColors() {
         replyButton.button.updateColors();
+        selectButton.button.updateColors();
         forwardButton.button.updateColors();
     }
 
@@ -169,6 +185,7 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
 
     private void checkButtonsPositionsAndVisibility() {
         checkHolderPositionsAndVisibility(forwardButton);
+        checkHolderPositionsAndVisibility(selectButton);
         checkHolderPositionsAndVisibility(replyButton);
     }
 
@@ -178,6 +195,9 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
         float offsetX = getMeasuredWidth() / 2f * (1f - AnimatorUtils.DECELERATE_INTERPOLATOR.getInterpolation(visibility));
         if (holder == replyButton) {
             offsetX *= -1;
+        }
+        if (holder == selectButton) {
+            offsetX = 0;
         }
 
         holder.button.setTranslationX(offsetX);
@@ -196,7 +216,7 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
 
         @Override
         public void onFactorChanged(int id, float factor, float fraction, FactorAnimator callee) {
-            textView.setAlpha(lerp(0.5f, 1, enabledAnimator.getFloatValue()));
+            if (textView != null) textView.setAlpha(lerp(0.5f, 1, enabledAnimator.getFloatValue()));
             checkHolderPositionsAndVisibility(this);
         }
     }

@@ -7953,6 +7953,31 @@ public class ChatActivity extends BaseFragment implements
         }
 
         actionsButtonsLayout = new ChatActivityActionsButtonsLayout(context, resourceProvider, blurredBackgroundColorProvider, glassBackgroundDrawableFactory);
+        actionsButtonsLayout.setSelectButtonOnClickListener(v -> {
+            ArrayList<Integer> ids = new ArrayList<>();
+            for (int a = 1; a >= 0; a--) {
+                for (int b = 0; b < selectedMessagesIds[a].size(); b++) {
+                    ids.add(selectedMessagesIds[a].keyAt(b));
+                }
+            }
+            Collections.sort(ids);
+            Integer begin = ids.get(0);
+            Integer end = ids.get(ids.size() - 1);
+            for (int i = 0; i < messages.size(); i++) {
+                int msgId = messages.get(i).getId();
+                if (msgId > begin && msgId < end && selectedMessagesIds[0].indexOfKey(msgId) < 0) {
+                    MessageObject message = messages.get(i);
+
+                    if (message.contentType != 0) {
+                        continue;
+                    }
+
+                    addToSelectedMessages(message, true);
+                }
+            }
+            updateActionModeTitle();
+            updateVisibleRows();
+        });
         actionsButtonsLayout.setReplyButtonOnClickListener(v -> {
             MessageObject messageObject = null;
             for (int a = 1; a >= 0; a--) {
@@ -19105,6 +19130,35 @@ public class ChatActivity extends BaseFragment implements
                         }
                     }
                     actionsButtonsLayout.showReplyButton(newVisibility == View.VISIBLE, true);
+                }
+
+                if (actionsButtonsLayout != null) {
+                    int newVisibility = View.GONE;
+                    if (selectedMessagesIds[0].size() > 1) {
+                        ArrayList<Integer> ids = new ArrayList<>();
+                        for (int a = 1; a >= 0; a--) {
+                            for (int b = 0; b < selectedMessagesIds[a].size(); b++) {
+                                ids.add(selectedMessagesIds[a].keyAt(b));
+                            }
+                        }
+                        Collections.sort(ids);
+                        Integer begin = ids.get(0);
+                        Integer end = ids.get(ids.size() - 1);
+                        for (int i = 0; i < messages.size(); i++) {
+                            int msgId = messages.get(i).getId();
+                            if (msgId > begin && msgId < end && selectedMessagesIds[0].indexOfKey(msgId) < 0) {
+                                MessageObject message = messages.get(i);
+
+                                if (message.contentType != 0) {
+                                    continue;
+                                }
+
+                                newVisibility = View.VISIBLE;
+                                break;
+                            }
+                        }
+                    }
+                    actionsButtonsLayout.showSelectButton(newVisibility == View.VISIBLE, true);
                 }
 
                 if (editItem != null) {
