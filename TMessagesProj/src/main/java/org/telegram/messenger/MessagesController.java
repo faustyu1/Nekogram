@@ -2564,6 +2564,7 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public void loadAppConfig(boolean force) {
+        if (!getUserConfig().isClientActivated()) return;
         if (force) {
             appConfigFetcher.forceRequest(currentAccount, 0);
         }
@@ -9893,6 +9894,7 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public void updateTimerProc() {
+        if (!getUserConfig().isClientActivated()) return;
         long currentTime = System.currentTimeMillis();
 
         checkDeletingTask(false);
