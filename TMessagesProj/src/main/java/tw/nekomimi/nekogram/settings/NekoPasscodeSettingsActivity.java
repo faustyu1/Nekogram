@@ -55,6 +55,12 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
     private int clearPasscodesRow;
     private int clearPasscodes2Row;
 
+    private int giftPasscodeRow;
+    private int setGiftPasscodeRow;
+    private int removeGiftPasscodeRow;
+    private int cancelResetGiftPasscodeRow;
+    private int giftPasscode2Row;
+
     private final ArrayList<Integer> accounts = new ArrayList<>();
 
     @Override
@@ -155,6 +161,23 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
                         updateRows();
                     }).create();
             showDialog(alertDialog);
+            showDialog(alertDialog);
+            ((TextView) alertDialog.getButton(Dialog.BUTTON_POSITIVE)).setTextColor(getThemedColor(Theme.key_text_RedBold));
+        } else if (position == setGiftPasscodeRow) {
+            presentFragment(new NekoGiftPasscodeActivity(NekoGiftPasscodeActivity.TYPE_SETUP));
+        } else if (position == cancelResetGiftPasscodeRow) {
+            PasscodeHelper.cancelGiftPasscodeReset();
+            updateRows();
+        } else if (position == removeGiftPasscodeRow) {
+            AlertDialog alertDialog = new AlertDialog.Builder(getParentActivity(), resourcesProvider)
+                    .setTitle(LocaleController.getString(R.string.PasscodeRemove))
+                    .setMessage(LocaleController.getString(R.string.PasscodeRemoveConfirmMessage))
+                    .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
+                    .setPositiveButton(LocaleController.getString(R.string.DisablePasscodeTurnOff), (dialog, which) -> {
+                        PasscodeHelper.removeGiftPasscode();
+                        updateRows();
+                    }).create();
+            showDialog(alertDialog);
             ((TextView) alertDialog.getButton(Dialog.BUTTON_POSITIVE)).setTextColor(getThemedColor(Theme.key_text_RedBold));
         } else if (position == showInSettingsRow) {
             PasscodeHelper.setHideSettings(!PasscodeHelper.isSettingsHidden());
@@ -204,6 +227,22 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
         rowCount += accounts.size();
         accountsEndRow = rowCount++;
 
+        // Gift Passcode
+        giftPasscodeRow = rowCount++;
+        setGiftPasscodeRow = rowCount++;
+        if (PasscodeHelper.hasGiftPasscode()) {
+            removeGiftPasscodeRow = rowCount++;
+            if (PasscodeHelper.isGiftPasscodeResetPending()) {
+                cancelResetGiftPasscodeRow = rowCount++;
+            } else {
+                cancelResetGiftPasscodeRow = -1;
+            }
+        } else {
+            removeGiftPasscodeRow = -1;
+            cancelResetGiftPasscodeRow = -1;
+        }
+        giftPasscode2Row = rowCount++;
+
         panicCodeRow = rowCount++;
         setPanicCodeRow = rowCount++;
         if (!PasscodeHelper.hasPanicCode()) {
@@ -243,6 +282,14 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
                     } else if (position == removePanicCodeRow) {
                         textCell.setTextColor(getThemedColor(Theme.key_text_RedRegular));
                         textCell.setText(LocaleController.getString(R.string.PasscodePanicCodeRemove), divider);
+                    } else if (position == setGiftPasscodeRow) {
+                        textCell.setText(PasscodeHelper.hasGiftPasscode() ? LocaleController.getString(R.string.ChangePasscode) : "Set Gift Passcode", removeGiftPasscodeRow != -1);
+                    } else if (position == removeGiftPasscodeRow) {
+                        textCell.setTextColor(getThemedColor(Theme.key_text_RedRegular));
+                        textCell.setText(LocaleController.getString(R.string.PasscodeRemove), divider);
+                    } else if (position == cancelResetGiftPasscodeRow) {
+                        textCell.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlueText4));
+                        textCell.setText("Cancel Reset", divider);
                     }
                     break;
                 }
@@ -261,6 +308,8 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
                         cell.setText(LocaleController.getString(R.string.Account));
                     } else if (position == panicCodeRow) {
                         cell.setText(LocaleController.getString(R.string.PasscodePanicCode));
+                    } else if (position == giftPasscodeRow) {
+                        cell.setText("Gift Passcode");
                     }
                     break;
                 }
@@ -285,6 +334,14 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
                             }
                         }, stringBuilder.length() - link.length(), stringBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                         cell.setText(stringBuilder);
+                    } else if (position == giftPasscode2Row) {
+                        if (PasscodeHelper.isGiftPasscodeResetPending()) {
+                            long time = PasscodeHelper.getGiftPasscodeResetTime();
+                            long diff = time - System.currentTimeMillis();
+                            cell.setText(LocaleController.formatString("ResetInDays", R.string.ResetInDays, AndroidUtilities.formatDuration((int) (diff / 1000))));
+                        } else {
+                            cell.setText("Code for gift interactions (transfer, buy)");
+                        }
                     }
                     break;
                 }
@@ -307,13 +364,13 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
         public int getItemViewType(int position) {
             if (position == clearPasscodes2Row) {
                 return TYPE_SHADOW;
-            } else if (position == clearPasscodesRow || position == setPanicCodeRow || position == removePanicCodeRow) {
+            } else if (position == clearPasscodesRow || position == setPanicCodeRow || position == removePanicCodeRow || position == setGiftPasscodeRow || position == removeGiftPasscodeRow || position == cancelResetGiftPasscodeRow) {
                 return TYPE_SETTINGS;
             } else if (position == showInSettingsRow) {
                 return TYPE_CHECK;
-            } else if (position == accountsStartRow || position == panicCodeRow) {
+            } else if (position == accountsStartRow || position == panicCodeRow || position == giftPasscodeRow) {
                 return TYPE_HEADER;
-            } else if (position == showInSettings2Row || position == accountsEndRow || position == panicCode2Row) {
+            } else if (position == showInSettings2Row || position == accountsEndRow || position == panicCode2Row || position == giftPasscode2Row) {
                 return TYPE_INFO_PRIVACY;
             } else if (position > accountsStartRow && position < accountsEndRow) {
                 return TYPE_ACCOUNT;

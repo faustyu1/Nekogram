@@ -98,6 +98,9 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
+import tw.nekomimi.nekogram.helpers.PasscodeHelper;
+import tw.nekomimi.nekogram.settings.NekoGiftPasscodeActivity;
+
 public class SendGiftSheet extends BottomSheetWithRecyclerListView implements NotificationCenter.NotificationCenterDelegate, GiftAuctionController.OnAuctionUpdateListener {
 
     private final boolean self;
@@ -479,31 +482,16 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
         button.setOnClickListener(v -> {
             if (button.isLoading()) return;
 
-            if (auction != null) {
-                final AuctionBidSheet.Params p = new AuctionBidSheet.Params(dialogId, anonymous, getMessage());
-                AuctionBidSheet auctionSheet = new AuctionBidSheet(context, resourcesProvider, p, auction);
-                auctionSheet.show();
-                auctionSheet.setCloseParentSheet(closeParentSheet);
-
-                AndroidUtilities.hideKeyboard(messageEdit);
-                dismiss();
-                if (!isDismissed) {
-                    AndroidUtilities.runOnUIThread(this::dismiss, 500);
+            if (PasscodeHelper.hasGiftPasscode()) {
+                NekoGiftPasscodeActivity fragment = new NekoGiftPasscodeActivity(NekoGiftPasscodeActivity.TYPE_CHECK);
+                fragment.setOnPasscodeConfirmed(this::processSendGift);
+                BaseFragment parentFragment = LaunchActivity.getSafeLastFragment();
+                if (parentFragment != null) {
+                    parentFragment.presentFragment(fragment);
                 }
                 return;
             }
-
-            button.setLoading(true);
-            if (messageEdit.editTextEmoji.getEmojiPadding() > 0) {
-                messageEdit.editTextEmoji.hidePopup(true);
-            } else if (messageEdit.editTextEmoji.isKeyboardVisible()) {
-                messageEdit.editTextEmoji.closeKeyboard();
-            }
-            if (starGift != null) {
-                buyStarGift();
-            } else {
-                buyPremiumTier();
-            }
+            processSendGift();
         });
 
         layoutManager.setReverseLayout(reverseLayout = true);
@@ -1006,5 +994,33 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
             return;
         }
         super.onBackPressed();
+    }
+
+    private void processSendGift() {
+        if (auction != null) {
+            final AuctionBidSheet.Params p = new AuctionBidSheet.Params(dialogId, anonymous, getMessage());
+            AuctionBidSheet auctionSheet = new AuctionBidSheet(getContext(), resourcesProvider, p, auction);
+            auctionSheet.show();
+            auctionSheet.setCloseParentSheet(closeParentSheet);
+
+            AndroidUtilities.hideKeyboard(messageEdit);
+            dismiss();
+            if (!isDismissed) {
+                AndroidUtilities.runOnUIThread(this::dismiss, 500);
+            }
+            return;
+        }
+
+        button.setLoading(true);
+        if (messageEdit.editTextEmoji.getEmojiPadding() > 0) {
+            messageEdit.editTextEmoji.hidePopup(true);
+        } else if (messageEdit.editTextEmoji.isKeyboardVisible()) {
+            messageEdit.editTextEmoji.closeKeyboard();
+        }
+        if (starGift != null) {
+            buyStarGift();
+        } else {
+            buyPremiumTier();
+        }
     }
 }

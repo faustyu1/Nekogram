@@ -98,6 +98,10 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.tgnet.tl.TL_stars;
+import tw.nekomimi.nekogram.helpers.PasscodeHelper;
+import tw.nekomimi.nekogram.settings.NekoGiftPasscodeActivity;
+import org.telegram.ui.LaunchActivity;
+import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.AccountFrozenAlert;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -5633,6 +5637,19 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
     }
 
     private void doUpgrade() {
+        if (PasscodeHelper.hasGiftPasscode()) {
+             BaseFragment parentFragment = LaunchActivity.getSafeLastFragment();
+             if (parentFragment != null) {
+                 NekoGiftPasscodeActivity fragment = new NekoGiftPasscodeActivity(NekoGiftPasscodeActivity.TYPE_CHECK);
+                 fragment.setOnPasscodeConfirmed(this::doUpgradeInternal);
+                 parentFragment.presentFragment(fragment);
+             }
+             return;
+        }
+        doUpgradeInternal();
+    }
+
+    private void doUpgradeInternal() {
         if (button.isLoading()) return;
 
         long stars;
@@ -5845,6 +5862,19 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
     }
 
     public void openTransfer() {
+        if (PasscodeHelper.hasGiftPasscode()) {
+             BaseFragment parentFragment = LaunchActivity.getSafeLastFragment();
+             if (parentFragment != null) {
+                 NekoGiftPasscodeActivity fragment = new NekoGiftPasscodeActivity(NekoGiftPasscodeActivity.TYPE_CHECK);
+                 fragment.setOnPasscodeConfirmed(this::openTransferInternal);
+                 parentFragment.presentFragment(fragment);
+             }
+             return;
+        }
+        openTransferInternal();
+    }
+
+    public void openTransferInternal() {
         if (currentHintView != null) {
             currentHintView.hide();
             currentHintView = null;

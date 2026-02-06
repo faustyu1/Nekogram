@@ -150,4 +150,77 @@ public class PasscodeHelper {
     public static void clearAll() {
         preferences.edit().clear().apply();
     }
+
+
+    /* Gift Passcode */
+
+    public static boolean checkGiftPasscode(String passcode) {
+        if (hasGiftPasscode()) {
+            String passcodeHash = preferences.getString("giftPasscodeHash", "");
+            String passcodeSaltString = preferences.getString("giftPasscodeSalt", "");
+            return checkPasscodeHash(passcode, passcodeHash, passcodeSaltString);
+        }
+        return false;
+    }
+
+    public static void setGiftPasscode(String passcode) {
+        try {
+            byte[] passcodeSalt = new byte[16];
+            Utilities.random.nextBytes(passcodeSalt);
+            byte[] passcodeBytes = passcode.getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = new byte[32 + passcodeBytes.length];
+            System.arraycopy(passcodeSalt, 0, bytes, 0, 16);
+            System.arraycopy(passcodeBytes, 0, bytes, 16, passcodeBytes.length);
+            System.arraycopy(passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
+            preferences.edit()
+                    .putString("giftPasscodeHash", Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length)))
+                    .putString("giftPasscodeSalt", Base64.encodeToString(passcodeSalt, Base64.DEFAULT))
+                    .remove("giftPasscodeResetTime")
+                    .apply();
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+    }
+
+    public static boolean hasGiftPasscode() {
+        return preferences.contains("giftPasscodeHash") && preferences.contains("giftPasscodeSalt");
+    }
+
+    public static void removeGiftPasscode() {
+        preferences.edit()
+                .remove("giftPasscodeHash")
+                .remove("giftPasscodeSalt")
+                .remove("giftPasscodeResetTime")
+                .apply();
+    }
+
+    public static void initiateGiftPasscodeReset() {
+        if (isGiftPasscodeResetPending()) {
+            return;
+        }
+        preferences.edit().putLong("giftPasscodeResetTime", System.currentTimeMillis() + 7 * 86400000L).apply();
+    }
+
+    public static void cancelGiftPasscodeReset() {
+        preferences.edit().remove("giftPasscodeResetTime").apply();
+    }
+
+    public static long getGiftPasscodeResetTime() {
+        return preferences.getLong("giftPasscodeResetTime", 0);
+    }
+
+    public static boolean isGiftPasscodeResetPending() {
+        return preferences.contains("giftPasscodeResetTime");
+    }
+
+    public static boolean checkGiftPasscodeReset() {
+        if (isGiftPasscodeResetPending()) {
+            long time = getGiftPasscodeResetTime();
+            if (System.currentTimeMillis() >= time) {
+                removeGiftPasscode();
+                return true;
+            }
+        }
+        return false;
+    }
 }
