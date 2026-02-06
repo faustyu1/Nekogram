@@ -31,8 +31,9 @@ import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.Components.CodeFieldContainer;
-import org.telegram.ui.Components.CodeNumberField;
+import org.telegram.messenger.ApplicationLoader;
+import org.telegram.ui.CodeFieldContainer;
+import org.telegram.ui.CodeNumberField;
 import org.telegram.ui.Components.CombinedDrawable;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
@@ -93,14 +94,18 @@ public class NekoGiftPasscodeActivity extends BaseFragment {
         LinearLayout innerLinearLayout = new LinearLayout(context);
         innerLinearLayout.setOrientation(LinearLayout.VERTICAL);
         innerLinearLayout.setGravity(Gravity.CENTER_HORIZONTAL);
-        frameLayout.addView(innerLinearLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        frameLayout.addView(innerLinearLayout,
+                LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
         lockImageView = new RLottieImageView(context);
         lockImageView.setFocusable(false);
         lockImageView.setAnimation(R.raw.tsv_setup_intro, 120, 120);
         lockImageView.setAutoRepeat(false);
         lockImageView.playAnimation();
-        lockImageView.setVisibility(!AndroidUtilities.isSmallScreen() && AndroidUtilities.displaySize.x < AndroidUtilities.displaySize.y ? View.VISIBLE : View.GONE);
+        lockImageView.setVisibility(
+                !AndroidUtilities.isSmallScreen() && AndroidUtilities.displaySize.x < AndroidUtilities.displaySize.y
+                        ? View.VISIBLE
+                        : View.GONE);
         innerLinearLayout.addView(lockImageView, LayoutHelper.createLinear(120, 120, Gravity.CENTER_HORIZONTAL));
 
         titleTextView = new TextView(context);
@@ -108,7 +113,8 @@ public class NekoGiftPasscodeActivity extends BaseFragment {
         titleTextView.setTypeface(AndroidUtilities.bold());
         titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
         titleTextView.setGravity(Gravity.CENTER_HORIZONTAL);
-        innerLinearLayout.addView(titleTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 16, 0, 0));
+        innerLinearLayout.addView(titleTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT,
+                LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 16, 0, 0));
 
         descriptionTextSwitcher = new TextViewSwitcher(context);
         descriptionTextSwitcher.setFactory(() -> {
@@ -121,7 +127,8 @@ public class NekoGiftPasscodeActivity extends BaseFragment {
         });
         descriptionTextSwitcher.setInAnimation(context, R.anim.alpha_in);
         descriptionTextSwitcher.setOutAnimation(context, R.anim.alpha_out);
-        innerLinearLayout.addView(descriptionTextSwitcher, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 20, 8, 20, 0));
+        innerLinearLayout.addView(descriptionTextSwitcher, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT,
+                LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 20, 8, 20, 0));
 
         FrameLayout codeContainer = new FrameLayout(context);
         codeFieldContainer = new CodeFieldContainer(context) {
@@ -143,29 +150,32 @@ public class NekoGiftPasscodeActivity extends BaseFragment {
             f.setTransformationMethod(PasswordTransformationMethod.getInstance());
             f.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
         }
-        codeContainer.addView(codeFieldContainer, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 40, 10, 40, 0));
-        innerLinearLayout.addView(codeContainer, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 32, 0, 72));
-        
+        codeContainer.addView(codeFieldContainer, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT,
+                LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 40, 10, 40, 0));
+        innerLinearLayout.addView(codeContainer, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT,
+                LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 32, 0, 72));
+
         // Setup logic
         if (type == TYPE_SETUP) {
             titleTextView.setText(LocaleController.getString(R.string.CreatePasscode));
             passcodeSetStep = 0;
         } else {
             titleTextView.setText(LocaleController.getString(R.string.EnterYourPasscode));
-            
+
             if (PasscodeHelper.isGiftPasscodeResetPending()) {
-                 long resetTime = PasscodeHelper.getGiftPasscodeResetTime();
-                 long diff = resetTime - System.currentTimeMillis();
-                 if (diff > 0) {
-                     descriptionTextSwitcher.setText(LocaleController.formatString("ResetInDays", R.string.ResetInDays, AndroidUtilities.formatDuration((int) (diff / 1000))));
-                 } else {
-                     PasscodeHelper.checkGiftPasscodeReset(); // Should reset now
-                     finishFragment();
-                 }
+                long resetTime = PasscodeHelper.getGiftPasscodeResetTime();
+                long diff = resetTime - System.currentTimeMillis();
+                if (diff > 0) {
+                    descriptionTextSwitcher.setText(LocaleController.formatString("ResetInDays", R.string.ResetInDays,
+                            LocaleController.formatDuration((int) (diff / 1000))));
+                } else {
+                    PasscodeHelper.checkGiftPasscodeReset(); // Should reset now
+                    finishFragment();
+                }
             } else {
                 descriptionTextSwitcher.setText(LocaleController.getString(R.string.EnterYourPasscode));
             }
-            
+
             TextView forgotTextView = new TextView(context);
             forgotTextView.setText(LocaleController.getString(R.string.ForgotPasscode));
             forgotTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
@@ -175,8 +185,9 @@ public class NekoGiftPasscodeActivity extends BaseFragment {
                 if (PasscodeHelper.isGiftPasscodeResetPending()) {
                     return;
                 }
-                
-                org.telegram.ui.ActionBar.AlertDialog.Builder builder = new org.telegram.ui.ActionBar.AlertDialog.Builder(getParentActivity());
+
+                org.telegram.ui.ActionBar.AlertDialog.Builder builder = new org.telegram.ui.ActionBar.AlertDialog.Builder(
+                        getParentActivity());
                 builder.setTitle(LocaleController.getString(R.string.ResetPasscode));
                 builder.setMessage(LocaleController.getString(R.string.ResetPasscodeText));
                 builder.setPositiveButton(LocaleController.getString(R.string.Reset), (dialog, which) -> {
@@ -187,71 +198,157 @@ public class NekoGiftPasscodeActivity extends BaseFragment {
                 builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
                 showDialog(builder.create());
             });
-            innerLinearLayout.addView(forgotTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 24, 0, 0));
+            innerLinearLayout.addView(forgotTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT,
+                    LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 24, 0, 0));
+        }
+
+        floatingButtonContainer = new FrameLayout(context);
+        floatingButtonIcon = new TransformableLoginButtonView(context);
+        floatingButtonIcon.setTransformType(TransformableLoginButtonView.TYPE_PROGRAMMING);
+        floatingButtonIcon.setColor(Theme.getColor(Theme.key_nextClicked));
+        floatingButtonContainer.addView(floatingButtonIcon,
+                LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        floatingButtonContainer.setBackground(
+                Theme.createCircleDrawable(AndroidUtilities.dp(60), Theme.getColor(Theme.key_chats_actionBackground)));
+        floatingButtonContainer.setOnClickListener(v -> {
+            if (type == TYPE_SETUP) {
+                if (passcodeSetStep == 0) {
+                    processNext();
+                } else {
+                    processDone();
+                }
+            } else {
+                processDone();
+            }
+        });
+        frameLayout.addView(floatingButtonContainer,
+                LayoutHelper.createFrame(60, 60, Gravity.BOTTOM | Gravity.RIGHT, 0, 0, 34, 44));
+
+        if (PasscodeHelper.getGiftPasscodeRetryUntil() > 0) {
+            checkRetryState();
         }
 
         return fragmentView;
     }
 
-    private void processNext() {
-        String password = codeFieldContainer.getString();
-        if (password.length() != 4) {
-             AndroidUtilities.shakeViewSpring(codeFieldContainer);
-             return;
+    private void checkRetryState() {
+        long until = PasscodeHelper.getGiftPasscodeRetryUntil();
+        if (until > 0) {
+            long diff = until - System.currentTimeMillis();
+            if (diff > 0) {
+                codeFieldContainer.setVisibility(View.INVISIBLE);
+                floatingButtonContainer.setVisibility(View.INVISIBLE);
+                String timeString = LocaleController.formatDuration((int) (diff / 1000));
+                descriptionTextSwitcher
+                        .setText(LocaleController.formatString("FloodWaitTime", R.string.FloodWaitTime, timeString));
+
+                AndroidUtilities.cancelRunOnUIThread(checkRetryRunnable);
+                AndroidUtilities.runOnUIThread(checkRetryRunnable, 1000);
+            } else {
+                AndroidUtilities.cancelRunOnUIThread(checkRetryRunnable);
+                codeFieldContainer.setVisibility(View.VISIBLE);
+                floatingButtonContainer.setVisibility(View.VISIBLE);
+                descriptionTextSwitcher.setText(LocaleController.getString(R.string.EnterYourPasscode));
+                codeFieldContainer.setText("");
+            }
+        } else {
+            AndroidUtilities.cancelRunOnUIThread(checkRetryRunnable);
+            codeFieldContainer.setVisibility(View.VISIBLE);
+            floatingButtonContainer.setVisibility(View.VISIBLE);
         }
-        
+    }
+
+    private final Runnable checkRetryRunnable = this::checkRetryState;
+
+    @Override
+    public void onFragmentDestroy() {
+        super.onFragmentDestroy();
+        AndroidUtilities.cancelRunOnUIThread(checkRetryRunnable);
+    }
+
+    @Override
+    public void onTransitionAnimationEnd(boolean isOpen, boolean backward) {
+        if (isOpen) {
+            codeFieldContainer.requestFocus();
+            AndroidUtilities.showKeyboard(codeFieldContainer);
+        }
+    }
+
+    private void processNext() {
+        String password = codeFieldContainer.getCode();
+        if (password.length() != 4) {
+            AndroidUtilities.shakeViewSpring(codeFieldContainer);
+            return;
+        }
+
         firstPassword = password;
         passcodeSetStep = 1;
-        codeFieldContainer.setText("");
-        titleTextView.setText(LocaleController.getString(R.string.ReEnterYourPasscode));
-        AndroidUtilities.shakeViewSpring(titleTextView, 5); 
+        codeFieldContainer.post(() -> codeFieldContainer.setText(""));
+        titleTextView.setText(LocaleController.getString(R.string.ConfirmCreatePasscode));
+        AndroidUtilities.shakeViewSpring(titleTextView, 5);
     }
 
     private void processDone() {
-        String password = codeFieldContainer.getString();
+        String password = codeFieldContainer.getCode();
         if (password.length() != 4) {
-             AndroidUtilities.shakeViewSpring(codeFieldContainer);
-             return;
+            AndroidUtilities.shakeViewSpring(codeFieldContainer);
+            return;
         }
 
         if (type == TYPE_SETUP) {
             if (passcodeSetStep == 1) {
                 if (firstPassword.equals(password)) {
-                     PasscodeHelper.setGiftPasscode(firstPassword);
-                     finishFragment();
+                    PasscodeHelper.setGiftPasscode(firstPassword);
+                    finishFragment();
                 } else {
-                     AndroidUtilities.shakeViewSpring(codeFieldContainer);
-                     passcodeSetStep = 0;
-                     firstPassword = null;
-                     codeFieldContainer.setText("");
-                     titleTextView.setText(LocaleController.getString(R.string.CreatePasscode));
-                     AndroidUtilities.shakeViewSpring(titleTextView, 5);
+                    AndroidUtilities.shakeViewSpring(codeFieldContainer);
+                    passcodeSetStep = 0;
+                    firstPassword = null;
+                    codeFieldContainer.setText("");
+                    titleTextView.setText(LocaleController.getString(R.string.CreatePasscode));
+                    AndroidUtilities.shakeViewSpring(titleTextView, 5);
                 }
             }
         } else {
+            if (PasscodeHelper.getGiftPasscodeRetryUntil() > 0) {
+                checkRetryState();
+                codeFieldContainer.setText("");
+                return;
+            }
+
             if (PasscodeHelper.checkGiftPasscode(password)) {
-                 finishFragment();
-                 if (onPasscodeConfirmed != null) onPasscodeConfirmed.run();
+                PasscodeHelper.cleanGiftPasscodeBadTries();
+                finishFragment();
+                if (onPasscodeConfirmed != null)
+                    onPasscodeConfirmed.run();
             } else {
-                 AndroidUtilities.shakeViewSpring(codeFieldContainer);
-                 VibratorCompat.vibrate(200);
-                 codeFieldContainer.setText("");
+                PasscodeHelper.increaseGiftPasscodeBadTries();
+                if (PasscodeHelper.getGiftPasscodeRetryUntil() > 0) {
+                    checkRetryState();
+                    AndroidUtilities.shakeViewSpring(descriptionTextSwitcher);
+                } else {
+                    AndroidUtilities.shakeViewSpring(codeFieldContainer);
+                }
+                VibratorCompat.vibrate(200);
+                codeFieldContainer.setText("");
             }
         }
     }
-    
+
     private Runnable onPasscodeConfirmed;
+
     public void setOnPasscodeConfirmed(Runnable runnable) {
         this.onPasscodeConfirmed = runnable;
     }
-    
+
     // Helper to simulate vibration simply
     private static class VibratorCompat {
         static void vibrate(long ms) {
-             try {
-                 View v = new View(ApplicationLoader.applicationContext);
-                 v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
-             } catch (Exception ignore) {}
+            try {
+                View v = new View(ApplicationLoader.applicationContext);
+                v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+            } catch (Exception ignore) {
+            }
         }
     }
 }

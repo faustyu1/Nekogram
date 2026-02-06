@@ -16,7 +16,8 @@ import org.telegram.ui.LaunchActivity;
 import java.nio.charset.StandardCharsets;
 
 public class PasscodeHelper {
-    private static final SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("nekopasscode", Context.MODE_PRIVATE);
+    private static final SharedPreferences preferences = ApplicationLoader.applicationContext
+            .getSharedPreferences("nekopasscode", Context.MODE_PRIVATE);
 
     public static boolean checkPasscode(Activity activity, String passcode) {
         if (hasPasscodeForAccount(Integer.MAX_VALUE)) {
@@ -105,7 +106,8 @@ public class PasscodeHelper {
             System.arraycopy(passcodeBytes, 0, bytes, 16, passcodeBytes.length);
             System.arraycopy(passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
             preferences.edit()
-                    .putString("passcodeHash" + account, Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length)))
+                    .putString("passcodeHash" + account,
+                            Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length)))
                     .putString("passcodeSalt" + account, Base64.encodeToString(passcodeSalt, Base64.DEFAULT))
                     .apply();
         } catch (Exception e) {
@@ -151,7 +153,6 @@ public class PasscodeHelper {
         preferences.edit().clear().apply();
     }
 
-
     /* Gift Passcode */
 
     public static boolean checkGiftPasscode(String passcode) {
@@ -173,7 +174,8 @@ public class PasscodeHelper {
             System.arraycopy(passcodeBytes, 0, bytes, 16, passcodeBytes.length);
             System.arraycopy(passcodeSalt, 0, bytes, passcodeBytes.length + 16, 16);
             preferences.edit()
-                    .putString("giftPasscodeHash", Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length)))
+                    .putString("giftPasscodeHash",
+                            Utilities.bytesToHex(Utilities.computeSHA256(bytes, 0, bytes.length)))
                     .putString("giftPasscodeSalt", Base64.encodeToString(passcodeSalt, Base64.DEFAULT))
                     .remove("giftPasscodeResetTime")
                     .apply();
@@ -222,5 +224,47 @@ public class PasscodeHelper {
             }
         }
         return false;
+    }
+
+    public static int getGiftPasscodeBadTries() {
+        return preferences.getInt("giftPasscodeBadTries", 0);
+    }
+
+    public static void increaseGiftPasscodeBadTries() {
+        int tries = getGiftPasscodeBadTries() + 1;
+        preferences.edit().putInt("giftPasscodeBadTries", tries).apply();
+        if (tries >= 3) {
+            long delay = 5000;
+            if (tries == 3)
+                delay = 5000;
+            else if (tries == 4)
+                delay = 10000;
+            else if (tries == 5)
+                delay = 15000;
+            else if (tries == 6)
+                delay = 20000;
+            else if (tries == 7)
+                delay = 25000;
+            else
+                delay = 30000;
+
+            preferences.edit().putLong("giftPasscodeLockedUntil", System.currentTimeMillis() + delay).apply();
+        }
+    }
+
+    public static void cleanGiftPasscodeBadTries() {
+        preferences.edit()
+                .remove("giftPasscodeBadTries")
+                .remove("giftPasscodeLockedUntil")
+                .apply();
+    }
+
+    public static long getGiftPasscodeRetryUntil() {
+        long until = preferences.getLong("giftPasscodeLockedUntil", 0);
+        if (until > 0 && until < System.currentTimeMillis()) {
+            preferences.edit().remove("giftPasscodeLockedUntil").apply();
+            return 0;
+        }
+        return until;
     }
 }
