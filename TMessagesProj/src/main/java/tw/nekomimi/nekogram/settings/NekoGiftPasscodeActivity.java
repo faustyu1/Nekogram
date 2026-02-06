@@ -205,7 +205,7 @@ public class NekoGiftPasscodeActivity extends BaseFragment {
         floatingButtonContainer = new FrameLayout(context);
         floatingButtonIcon = new TransformableLoginButtonView(context);
         floatingButtonIcon.setTransformType(TransformableLoginButtonView.TYPE_PROGRAMMING);
-        floatingButtonIcon.setColor(Theme.getColor(Theme.key_nextClicked));
+        floatingButtonIcon.setColor(Theme.getColor(Theme.key_chats_actionBackground));
         floatingButtonContainer.addView(floatingButtonIcon,
                 LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         floatingButtonContainer.setBackground(
